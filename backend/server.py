@@ -38,7 +38,7 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DATABASE = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "jailbreak_results.db"))
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 HOST = os.environ.get("FLASK_HOST", "0.0.0.0")
-PORT = int(os.environ.get("FLASK_PORT", "8765"))
+PORT = int(os.environ.get("PORT", os.environ.get("FLASK_PORT", "8765")))
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:8765,http://127.0.0.1:8765")
 
 # Server-side API key for OpenRouter (never sent to frontend)

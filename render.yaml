@@ -2,13 +2,11 @@ services:
   - type: web
     name: ai-security-dashboard
     runtime: python
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && python server.py
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn server:app --bind 0.0.0.0:$PORT --workers 2
     envVars:
       - key: FLASK_HOST
         value: "0.0.0.0"
-      - key: FLASK_PORT
-        value: "10000"
       - key: FLASK_DEBUG
         value: "false"
       - key: ALLOWED_ORIGINS
