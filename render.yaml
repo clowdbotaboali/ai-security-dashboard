@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ai-security-dashboard
+    runtime: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && python server.py
+    envVars:
+      - key: FLASK_HOST
+        value: "0.0.0.0"
+      - key: FLASK_PORT
+        value: "10000"
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: DASHBOARD_API_KEY
+        sync: false
