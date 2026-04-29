@@ -334,6 +334,7 @@
         .tag-single { background: rgba(0,184,148,0.12); color: var(--accent-green); border: 1px solid rgba(0,184,148,0.2); }
         .tag-multi { background: rgba(225,112,85,0.12); color: var(--accent-orange); border: 1px solid rgba(225,112,85,0.2); }
         .tag-auto { background: rgba(232,67,147,0.12); color: var(--accent-pink); border: 1px solid rgba(232,67,147,0.2); }
+        .tag-payload { background: rgba(253,203,110,0.12); color: var(--accent-yellow); border: 1px solid rgba(253,203,110,0.2); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
 
         .card-metrics {
             display: grid;
@@ -2581,6 +2582,37 @@
         document.getElementById('categories-count').textContent = cats;
     }
 
+    // Determine payload type from category/id
+    function getPayloadType(t) {
+        const map = {
+            'code-execution': '🐍 Python/Shell',
+            'unicode-obfuscation': '🔤 Unicode',
+            'structured-payload': '📋 JSON/XML/YAML',
+            'image-attacks': '🖼️ Image File',
+            'audio-attacks': '🔊 Audio File',
+            'system-prompt-extraction': '📝 Text Prompt',
+            'indirect-injection': '💉 Embedded Payload',
+            'agent-exploits': '🤖 Tool Call',
+            'recursive-self': '🔄 Self-Replicating',
+            'dos-resource': '💥 Resource Flood',
+            'identity-role': '🎭 Text Prompt',
+            'data-extraction': '📤 Extraction Query',
+        };
+        if (t.id === 'base64') return '🔡 Base64 Encoded';
+        if (t.id === 'gcg' || t.id === 'autodan' || t.id === 'autodan-turbo') return '📐 Adversarial Suffix';
+        if (t.id === 'artprompt') return '🎨 ASCII Art';
+        if (t.id === 'flipattack') return '🔃 Reversed Text';
+        if (t.id === 'agent-smith' || t.id === 'visual-jb' || t.id === 'img-steganography') return '🖼️ Image+Text';
+        if (t.id === 'json-injection') return '📋 JSON';
+        if (t.id === 'xml-injection') return '📄 XML';
+        if (t.id === 'yaml-injection') return '📊 YAML';
+        if (t.id === 'latex-injection') return '📐 LaTeX';
+        if (t.id === 'markdown-injection') return '📝 Markdown/HTML';
+        if (t.id === 'emoji-attack') return '😀 Emoji-Obfuscated';
+        if (t.id === 'struct-transform') return '🔀 Restructured';
+        return map[t.category] || '📝 Text Prompt';
+    }
+
     function populateSelect() {
         const select = document.getElementById('technique-select');
         techniques.forEach(t => {
@@ -2673,6 +2705,7 @@
                         <div class="card-tags">
                             <span class="tag tag-${t.threat === 'blackbox' ? 'blackbox' : 'whitebox'}">${t.threat}</span>
                             <span class="tag tag-${t.turns === 'multi' ? 'multi' : 'single'}">${t.turns}-turn</span>
+                            <span class="tag tag-payload">${getPayloadType(t)}</span>
                             ${t.category === 'llm-attacker' ? '<span class="tag tag-auto">automated</span>' : ''}
                         </div>
                         <div class="card-metrics">
