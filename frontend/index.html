@@ -876,17 +876,17 @@
 
         <!-- API Key Panel -->
         <div class="test-panel active" id="api-panel" style="margin-bottom:24px;">
-            <h3>🔑 OpenRouter API Key</h3>
+            <h3>🔐 Dashboard API Key</h3>
             <div class="test-form">
                 <div class="form-group">
-                    <label>API Key</label>
-                    <input type="password" id="api-key" placeholder="sk-or-v1-..." style="direction:ltr;text-align:left;">
+                    <label>Dashboard API Key</label>
+                    <input type="password" id="api-key" placeholder="أدخل Dashboard API Key..." style="direction:ltr;text-align:left;">
                 </div>
                 <div class="form-group" style="justify-content:flex-end;">
                     <button class="btn btn-primary" onclick="saveApiKey()" style="height:fit-content;">💾 حفظ المفتاح</button>
                 </div>
                 <div class="form-group full">
-                    <div id="api-status" style="font-size:0.85rem;color:var(--text-muted);">⚠️ أدخل API Key لبدء الاختبارات الحقيقية</div>
+                    <div id="api-status" style="font-size:0.85rem;color:var(--text-muted);">⚠️ أدخل Dashboard API Key (الـ OpenRouter key على السيرفر)</div>
                 </div>
             </div>
         </div>
@@ -1780,23 +1780,33 @@
     //  API CONFIGURATION
     // ═══════════════════════════════════════════
     const API_BASE = window.location.origin + '/api';
-    let savedApiKey = localStorage.getItem('openrouter_api_key') || '';
+    let dashboardApiKey = localStorage.getItem('dashboard_api_key') || '';
     let liveStats = { total: 0, bypassed: 0, cost: 0 };
+
+    function _apiHeaders() {
+        const h = { 'Content-Type': 'application/json' };
+        if (dashboardApiKey) h['X-API-Key'] = dashboardApiKey;
+        return h;
+    }
 
     function saveApiKey() {
         const key = document.getElementById('api-key').value.trim();
-        if (!key) { showToast('⚠️ أدخل API Key'); return; }
-        savedApiKey = key;
-        localStorage.setItem('openrouter_api_key', key);
+        if (!key) { showToast('⚠️ أدخل Dashboard API Key'); return; }
+        dashboardApiKey = key;
+        localStorage.setItem('dashboard_api_key', key);
         document.getElementById('api-status').innerHTML = '✅ تم حفظ المفتاح — جاهز للاختبار';
         document.getElementById('api-status').style.color = 'var(--accent-green)';
         loadModels();
-        showToast('✅ تم حفظ API Key');
+        showToast('✅ تم حفظ Dashboard API Key');
     }
 
     async function loadModels() {
         try {
-            const resp = await fetch(API_BASE + '/models');
+            const resp = await fetch(API_BASE + '/models', { headers: _apiHeaders() });
+            if (resp.status === 401) {
+                showToast('⚠️ مفتاح غير صحيح — أدخل Dashboard API Key');
+                return;
+            }
             const data = await resp.json();
             const select = document.getElementById('target-model');
             select.innerHTML = '<option value="">اختر النموذج...</option>';
@@ -1819,7 +1829,7 @@
         try {
             const resp = await fetch(API_BASE + '/generate-prompt', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: _apiHeaders(),
                 body: JSON.stringify({ technique_id: techId, prompt: prompt })
             });
             const data = await resp.json();
@@ -1831,7 +1841,7 @@
     }
 
     async function runRealTest() {
-        if (!savedApiKey) { showToast('⚠️ أدخل API Key أولاً'); return; }
+        if (!dashboardApiKey) { showToast('⚠️ أدخل Dashboard API Key أولاً'); return; }
         const modelId = document.getElementById('target-model').value;
         const techId = document.getElementById('technique-select').value;
         const prompt = document.getElementById('test-prompt').value;
@@ -1847,9 +1857,8 @@
         try {
             const resp = await fetch(API_BASE + '/test', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: _apiHeaders(),
                 body: JSON.stringify({
-                    api_key: savedApiKey,
                     model_id: modelId,
                     technique_id: techId,
                     prompt: prompt,
@@ -1875,7 +1884,7 @@
     }
 
     async function runBatchTest() {
-        if (!savedApiKey) { showToast('⚠️ أدخل API Key أولاً'); return; }
+        if (!dashboardApiKey) { showToast('⚠️ أدخل Dashboard API Key أولاً'); return; }
         const modelId = document.getElementById('target-model').value;
         const prompt = document.getElementById('test-prompt').value;
         const maxTokens = parseInt(document.getElementById('max-tokens').value) || 1024;
@@ -1890,9 +1899,8 @@
         try {
             const resp = await fetch(API_BASE + '/test-batch', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: _apiHeaders(),
                 body: JSON.stringify({
-                    api_key: savedApiKey,
                     model_id: modelId,
                     prompt: prompt,
                     max_tokens: maxTokens
@@ -1974,8 +1982,8 @@
     }
 
     // Init: restore API key if saved
-    if (savedApiKey) {
-        document.getElementById('api-key').value = savedApiKey;
+    if (dashboardApiKey) {
+        document.getElementById('api-key').value = dashboardApiKey;
         document.getElementById('api-status').innerHTML = '✅ مفتاح محفوظ — جاهز للاختبار';
         document.getElementById('api-status').style.color = 'var(--accent-green)';
         loadModels();
